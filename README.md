@@ -1,4 +1,4 @@
-# Notes
+# Let's deep dive into Qwik
 
 ## Visual Element Graph
 
