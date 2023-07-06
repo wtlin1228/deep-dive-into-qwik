@@ -168,7 +168,15 @@ Compute the objects in the paused state is a little more complex.
 
 #### revive subscription
 
+Qwik produces the reactivity graph on the server and serializes it into the HTML. So Qwik doesn't need to download and execute all the templates to make the page reactive.
+
+See https://www.builder.io/blog/history-of-reactivity#qwik.
+
+For example, `["3 #c 7 #c"]` is the serialized subscription for object 0, means that object 0 has a type 3 subscription. Qwik will parse this subscription and add it to the object 0's `$subs$` of its local subscription manager.
+
 #### revive nested objects
+
+There might be some un-computed object ids inside the object. So, Qwik need to map those object ids into objects by either the serializer's `$fill$` method or by `getObject` directly.
 
 ## ContainerState
 
