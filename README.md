@@ -1,5 +1,9 @@
 # Notes
 
+## Visual Element Graph
+
+![element graph](./qwik-element-graph.svg)
+
 ## Serialized State
 
 Qwik serializes many things on the server and add them into:
