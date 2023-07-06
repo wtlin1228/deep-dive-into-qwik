@@ -1,3 +1,208 @@
+# Notes
+
+## Serialized State
+
+Qwik serializes many things on the server and add them into:
+
+- `<script type="qwik/json"></script>`
+- `<script q:func="qwik/json"></script>`
+
+### Qwik JSON
+
+- refs: `Map<elementId, objId>`, is used to get the objects for the captured state
+- ctx: don't know yet
+- objs: the serialized objects, need to use `getObject` before using them on the client
+- subs: the subscriptions, represent which element subscribes which signal
+
+```ts
+const qwikjson = {
+  refs: {
+    f: "a!", // the captured state for element with "q:id=f" is the "a" object, and "!" represents it's a Proxy
+    g: "a!",
+    q: "j!", // the captured state for element with "q:id=q" is the "j" object, and "!" represents it's a Proxy
+    r: "j!",
+  },
+  ctx: {},
+  objs: [
+    "\u00122", // 0, serialized by SignalSerializer
+    "\u0012b", // 1, serialized by SignalSerializer
+    10, // 2
+    "leo", // 3
+    {
+      identifier: "3",
+      initialCount: "2",
+    }, // 4
+    "\u00114! @0", // 5, serialized by DerivedSignalSerializer
+    {
+      numberToShow: "0",
+      $$identifier: "5",
+    }, // 6
+    "\u00116! @1", // 7, serialized by DerivedSignalSerializer
+    "#c", // 8
+    "\u00114! @0", // 9, serialized by DerivedSignalSerializer
+    {
+      count: "0",
+      $$identifier: "9",
+    }, // a
+    5, // b
+    "una", // c
+    {
+      identifier: "c",
+      initialCount: "b",
+    }, // d
+    "\u0011d! @0", // e, serialized by DerivedSignalSerializer
+    {
+      numberToShow: "1",
+      $$identifier: "e",
+    }, // f
+    "\u0011f! @1", // g, serialized by DerivedSignalSerializer
+    "#n", // h
+    "\u0011d! @0", // i, serialized by DerivedSignalSerializer
+    {
+      count: "1",
+      $$identifier: "i",
+    }, // j
+  ],
+  subs: [
+    // [type, host, signal, elm, key]
+    ["3 #c 7 #c"], // the element with "q:id=c" subscribes the "7" object, which is "\u00116! @1" (a SignalDerived instance)
+    ["3 #n g #n"], // the element with "q:id=n" subscribes the "g" object, which is "\u0011f! @1" (a SignalDerived instance)
+  ],
+};
+```
+
+### Qwik Functions
+
+Functions for mapping the data derived from signals.
+
+```ts
+document.currentScript.qFuncs = [
+  (p0) => p0.identifier, // for getObject("@0")
+  (p0) => p0.numberToShow.value, // for getObject("@1")
+];
+```
+
+## Qwikloader
+
+Qwikloader lazy-loads and execute the serialized event handlers by registering global events.
+
+See https://qwik.builder.io/docs/advanced/qwikloader/.
+
+## useLexicalScope
+
+To avoid downloading all the templates, we need to be able to rehydrate each component independently and in any order. And the key is making event listeners don't close over code, until after the user interacts with the listener.
+
+`useLexicalScope` returns state that crosses over the code.
+
+For example, `Actions` has two event listeners that cross over the props:
+
+```ts
+export const Actions = component$<IActionsProps>((props) => {
+  console.log(`Actions-${props.identifier}`);
+
+  const plus = $(() => props.count.value++);
+  const minus = $(() => props.count.value--);
+
+  return (
+    <div class={`Actions-${props.identifier}`}>
+      <button onClick$={plus}>increment</button>
+      <button onClick$={minus}>decrement</button>
+    </div>
+  );
+});
+```
+
+Qwik transform it into:
+
+```ts
+import { useLexicalScope } from "/node_modules/@builder.io/qwik/core.mjs?v=2c948b3f";
+export const Actions_component_minus_q0etFf0m1KE = () => {
+  const [props] = useLexicalScope();
+  return props.count.value--;
+};
+```
+
+```ts
+import { useLexicalScope } from "/node_modules/@builder.io/qwik/core.mjs?v=2c948b3f";
+export const Actions_component_plus_47uPif0oZDc = () => {
+  const [props] = useLexicalScope();
+  return props.count.value++;
+};
+```
+
+## resume
+
+When the page is rendered on the server, it is paused. So, when users interact with the page, Qwik needs to resume the page.
+
+`<html q:container="paused">` --> `<html q:container="resume">`
+
+1. get qwik json and inline functions
+2. create `ContainerState` for container element
+3. collect all elements with a tree walker (both virtual elements and real elements)
+4. create a parser that can deserialize objects based on their prefix
+5. add `getObject` function into the `containerState.$pauseCtx$`
+6. emit `qresume` event
+
+### getObject
+
+`getObject: (id: string) => any`
+
+`getObject` returns the computed object in the `finalized` Map. Otherwise, compute the object.
+
+### computeObject
+
+`computeObject: (id: string) => any`
+
+Trivial cases:
+
+- Object is a HTML element if the id starts with `#`.
+- Object is an inline function if the id starts with `@`.
+- Object is a Text node if the id starts with `*`.
+
+Compute the objects in the paused state is a little more complex.
+
+1. get object from the `pauseState.objs`
+2. prepare it with parser if the object is a string (ex: "\u00122")
+3. transform the object if the object ends with `!`, `~` or `_`
+4. revive subscriptions and the nested values if the object isn't a primitive value
+
+#### revive subscription
+
+#### revive nested objects
+
+## ContainerState
+
+### $pauseCtx$
+
+### $subsManager$
+
+## QContext
+
+## Parser
+
+## Serializer
+
+### prepare
+
+### fill
+
+## Signal
+
+### SignalImpl
+
+### SignalDerived
+
+## Proxy
+
+## QRL
+
+- hash
+- chunk
+- symbol
+- capture
+
+---
+
 SSR HTML:
 
 ```html
