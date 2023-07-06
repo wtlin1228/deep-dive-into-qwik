@@ -184,9 +184,35 @@ There might be some un-computed object ids inside the object. So, Qwik need to m
 
 ## ContainerState
 
+A container state will be created in the process of resuming. A container state will be attached to the container element (usually the html element) with `Symbol('ContainerState')` as its key.
+
 ### $pauseCtx$
 
+```ts
+interface PauseContext {
+  getObject: GetObject;
+  meta: SnapshotMeta;
+  refs: Record<string, string>;
+}
+```
+
+In the `resumeContainer`, it got filled with:
+
+```ts
+containerState.$pauseCtx$ = {
+  getObject,
+  meta: pauseState.ctx,
+  refs: pauseState.refs,
+};
+```
+
 ### $subsManager$
+
+A SubscriptionManager created right after the container state got created (`createContainerState`):
+
+```ts
+containerState.$subsManager$ = createSubscriptionManager(containerState);
+```
 
 ## QContext
 
