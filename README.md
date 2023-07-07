@@ -186,7 +186,7 @@ There might be some un-computed object ids inside the object. So, Qwik need to m
 
 A container state will be created in the process of resuming. A container state will be attached to the container element (usually the html element) with `Symbol('ContainerState')` as its key.
 
-### $pauseCtx$
+### `$pauseCtx$`
 
 ```ts
 interface PauseContext {
@@ -206,7 +206,7 @@ containerState.$pauseCtx$ = {
 };
 ```
 
-### $subsManager$
+### `$subsManager$`
 
 A SubscriptionManager created right after the container state got created (`createContainerState`):
 
@@ -215,6 +215,27 @@ containerState.$subsManager$ = createSubscriptionManager(containerState);
 ```
 
 ## QContext
+
+In the `useLexicalScope`, after the container is resumed, Qwik will create a QContext for the element of current InvokeContext. `getContext` gets the refMap from the `containerState.$pauseCtx$.refs` then deserializes the object by the `containerState.$pauseCtx$.getObject`.
+
+For example:
+
+```ts
+refs: {
+  f: "a!",
+  g: "a!",
+  q: "j!",
+  r: "j!",
+},
+```
+
+If the invoke element is "g", its refMap is "a!". `getObject("a!")` gives us the object that captures the lexical scope's state.
+
+```ts
+qContext.$refMap$ = [getObject("a!")];
+```
+
+This `$refMap$` will be used to build the `$captureRef$` by `qrl.$capture$` in the `inflateQrl` function.
 
 ## Parser
 
