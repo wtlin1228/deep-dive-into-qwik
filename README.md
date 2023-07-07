@@ -239,11 +239,73 @@ This `$refMap$` will be used to build the `$captureRef$` by `qrl.$capture$` in t
 
 ## Parser
 
+Parser handles the objects serialized by **Serializers**. Parser deserializes those serialized string back to the object like `SignalImpl` and `SignalDerived`.
+
+```ts
+interface Parser {
+  prepare(data: string): any; // if the input data match the prefix of any serializer then prepare that data with it
+  subs(obj: any, subs: Subscriptions[]): boolean; // handle the subscription by serializer
+  fill(obj: any, getObject: GetObject): boolean; // handle the fill by serializer
+}
+```
+
 ## Serializer
+
+Serializer handle the conversion between an object and string. Qwik now has those serializers:
+
+```ts
+const serializers: Serializer<any>[] = [
+  QRLSerializer, ////////////// \u0002
+  SignalSerializer, /////////// \u0012
+  SignalWrapperSerializer, //// \u0013
+  TaskSerializer, ///////////// \u0003
+  ResourceSerializer, ///////// \u0004
+  URLSerializer, ////////////// \u0005
+  DateSerializer, ///////////// \u0006
+  RegexSerializer, //////////// \u0007
+  ErrorSerializer, //////////// \u000E
+  DerivedSignalSerializer, //// \u0011
+  FormDataSerializer, ///////// \u0016
+  URLSearchParamsSerializer, // \u0015
+  ComponentSerializer, //////// \u0010
+  NoFiniteNumberSerializer, /// \u0014
+  JSXNodeSerializer, ////////// \u0017
+  BigIntSerializer, /////////// \u0018
+  SetSerializer, ////////////// \u0019
+  MapSerializer, ////////////// \u001a
+  DocumentSerializer, ///////// \u000F
+];
+```
 
 ### prepare
 
+Convert the string to object but still leave the inner data un-filled.
+
+ex: DerivedSignalSerializer.prepare creates an object of SignalDerived but leaves the `args` and `fn` as id string.
+
+```ts
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
+  $prepare$: (data) => {
+    const ids = data.split(" ");
+    const args = ids.slice(0, -1);
+    const fn = ids[ids.length - 1];
+    return new SignalDerived(fn as any, args, fn);
+  },
+};
+```
+
 ### fill
+
+Fill the data needed for the object. For example, DerivedSignalSerializer fills the `args` and `fn`, SignalSerializer fills the `untrackedValue`.
+
+```ts
+const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
+  $fill$: (fn, getObject) => {
+    fn.$func$ = getObject(fn.$func$);
+    fn.$args$ = fn.$args$.map(getObject);
+  },
+};
+```
 
 ## Signal
 
