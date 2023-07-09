@@ -214,6 +214,8 @@ A SubscriptionManager created right after the container state got created (`crea
 containerState.$subsManager$ = createSubscriptionManager(containerState);
 ```
 
+### `$proxyMap$
+
 ## QContext
 
 In the `useLexicalScope`, after the container is resumed, Qwik will create a QContext for the element of current InvokeContext. `getContext` gets the refMap from the `containerState.$pauseCtx$.refs` then deserializes the object by the `containerState.$pauseCtx$.getObject`.
@@ -321,6 +323,10 @@ const DerivedSignalSerializer: Serializer<SignalDerived<any, any[]>> = {
 - chunk
 - symbol
 - capture
+
+### inflateQrl
+
+Resolve `$captureRef$` from `$refMap$`.
 
 ---
 
