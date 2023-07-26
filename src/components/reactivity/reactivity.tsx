@@ -1,17 +1,17 @@
 import {
-  useTask$,
-  Resource,
-  useResource$,
+  // useTask$,
+  // Resource,
+  // useResource$,
   component$,
   useComputed$,
   useSignal,
 } from "@builder.io/qwik";
 
-const fetchProfile = async (displayName: string): Promise<string> => {
-  await new Promise((resolve) => setTimeout(() => resolve(null), 100));
+// const fetchProfile = async (displayName: string): Promise<string> => {
+//   await new Promise((resolve) => setTimeout(() => resolve(null), 100));
 
-  return displayName + " 🎪 Profile 🎫";
-};
+//   return displayName + " 🎪 Profile 🎫";
+// };
 
 export const Reactivity = component$(() => {
   console.log("create Signal");

@@ -7,7 +7,7 @@ import {
 } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 
-import { Reactivity } from "~/components/reactivity/reactivity";
+// import { Reactivity } from "~/components/reactivity/reactivity";
 
 export default component$(() => {
   return (
@@ -55,7 +55,10 @@ export const ExplicitUseResource = component$(() => {
   const count = useSignal(1);
   const pokemonList = useResource$(async ({ track }) => {
     track(() => count.value);
+
+    console.log("fetch pokemons");
     await new Promise((resolve) => setTimeout(() => resolve(null), 2000));
+
     return Array(count.value)
       .fill(null)
       .map((_, idx) => `pokemon-${idx + 1} 🐙`);
